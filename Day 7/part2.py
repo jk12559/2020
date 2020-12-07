@@ -29,11 +29,10 @@ for rule in inputs:
 
 
 def count_inside(containers, name):
+    bags = 0
     if name in rules:
-        bags = 0
         for count, bag in rules[name]:
             bags += count_inside(containers*count, bag)
-        return bags + containers
-    return containers
+    return bags + containers
 
 print(count_inside(1, "shiny gold"))
