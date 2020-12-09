@@ -17,5 +17,5 @@ for i in range(25, len(numbers)):
     if numbers[i] not in possibilities:
         break
 
-
-print(numbers[i])
+result = numbers[i]
+print(result)
