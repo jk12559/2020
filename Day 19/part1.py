@@ -5,17 +5,6 @@ inputfile = os.path.join(pathlib.Path(__file__).parent, "grammar_input.txt")
 grammar_inputs = open(inputfile, 'r').read().splitlines()
 inputfile = os.path.join(pathlib.Path(__file__).parent, "messages_input.txt")
 messages_inputs = open(inputfile, 'r').read().splitlines()
-# grammar_inputs = '''0: 4 1 5
-# 1: 2 3 | 3 2
-# 2: 4 4 | 5 5
-# 3: 4 5 | 5 4
-# 4: "a"
-# 5: "b"'''.splitlines()
-# messages_inputs='''ababbb
-# bababa
-# abbbab
-# aaabbb
-# aaaabbb'''.splitlines()
 
 rule_pattern = re.compile('(\d+): (.*)')
 
@@ -26,35 +15,30 @@ for rule in grammar_inputs:
     rules[rule_match.group(1)] = [x.strip().split(' ') for x in rule_match.group(2).split('|')]
 
 def is_terminal(rule):
-    if '"' in rules[rule][0][0]:
+    if '"' in rule[0]:
         return True
     return False
 
 def is_valid(rule, letters):
-    if len(letters) == 0:
-        return False, ''
-    if is_terminal(rule):
-        if letters[0] in rules[rule][0][0]:
-            return True, letters[1:]
-        return False, letters
-    options = rules[rule]
+    if len(rule) == 0 and len(letters) == 0:
+        return True
+    if len(rule) > 0 and len(letters) == 0:
+        return False
+    if len(rule) == 0 and len(letters) > 0:
+        return False
+    inner_rule = rule[:]
+    next_value = inner_rule.pop(0)
+    if is_terminal(next_value):
+        if letters[0] in next_value:
+            return is_valid(inner_rule, letters[1:])
+        return False
+    options = rules[next_value]
     for option in options:
         inner_option = option[:]
-        while len(inner_option) > 0:
-            next_rule = inner_option.pop(0)
-            valid, remainder = is_valid(next_rule, letters)
-            if valid:
-                letters = remainder
-            else:
-                break
+        inner_option.extend(inner_rule)
+        valid = is_valid(inner_option, letters)
         if valid:
-            return True, remainder
-    return False, letters
-
-def is_fully_valid(rule,letters):
-    valid, remainder = is_valid(rule,letters)
-    if valid and remainder == '':
-        return True
+            return True
     return False
 
-print(sum([is_fully_valid('0', x) for x in messages_inputs],messages_inputs))
+print(sum([is_valid(rules['0'][0], x) for x in messages_inputs]))
